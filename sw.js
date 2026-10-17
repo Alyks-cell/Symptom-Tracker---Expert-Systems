@@ -1,8 +1,8 @@
 /* Triage Helper service worker.
    Network first, so people always get the latest rules; the cache is only a fallback when offline.
    (The question engine itself needs the server.) */
-const CACHE = "triage-helper-v2";
-const SHELL = ["/", "/static/style.css", "/static/app.js", "/static/icons/icon.svg", "/manifest.webmanifest"];
+const CACHE = "triage-helper-v3";
+const SHELL = ["/", "/static/style.css", "/static/app.js", "/static/icons/icon.svg", "/static/fonts/inter-latin.woff2", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

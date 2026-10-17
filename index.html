@@ -6,8 +6,8 @@
   <title>Symptom Triage Helper — How Urgent Is It?</title>
   <meta name="description" content="Answer a few questions to find out how urgently to seek care: emergency, urgent, see a doctor soon, or self-care. General guidance only, not a diagnosis. Nothing is saved.">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#f6f8f9" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0f1417" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f5f7f8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b1216" media="(prefers-color-scheme: dark)">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Symptom Triage Helper">
   <meta property="og:description" content="A short question-by-question check of how urgently to seek care. General guidance, not a diagnosis.">
@@ -17,6 +17,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Triage Helper">
+  <link rel="preload" href="/static/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/style.css">
   <script>
     /* Follow the system theme before first paint, unless the user chose one. */
@@ -50,13 +51,17 @@
       <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></symbol>
       <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
       <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+      <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
       <symbol id="i-plus" viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></symbol>
     </defs>
   </svg>
 
-  <div class="emergency-bar" role="note">
+  <div class="emergency-bar" role="region" aria-label="Emergency information">
     <svg class="ic" width="18" height="18" aria-hidden="true"><use href="#i-phone"/></svg>
-    <span><strong>In an emergency, call your local emergency number</strong> (for example 911, 999 or 112). Don't wait for this checker.</span>
+    <span><strong>Emergency?</strong> Call your local emergency number (for example 911, 999 or 112). Don't wait for this checker.</span>
   </div>
 
   <header class="topbar">
@@ -64,7 +69,7 @@
       <span class="brand-mark"><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-plus"/></svg></span>
       <span class="brand-name">Triage Helper</span>
     </a>
-    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Theme: follows your system. Activate to switch to light.">
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Auto theme, follows your system. Activate to switch to light.">
       <svg class="ic theme-icon theme-icon-auto" width="16" height="16" aria-hidden="true"><use href="#i-monitor"/></svg>
       <svg class="ic theme-icon theme-icon-light" width="16" height="16" aria-hidden="true"><use href="#i-sun"/></svg>
       <svg class="ic theme-icon theme-icon-dark" width="16" height="16" aria-hidden="true"><use href="#i-moon"/></svg>
@@ -76,29 +81,39 @@
     <p class="sr-only" id="status" role="status" aria-live="polite"></p>
 
     <!-- Start -->
-    <section class="card" id="screen-start" aria-labelledby="start-title">
-      <h1 id="start-title" tabindex="-1">How urgent is it?</h1>
-      <p class="lead">Answer a few quick questions. You'll find out whether to call emergency services, get care today, see a doctor soon, or look after it at home.</p>
-      <ul class="points">
-        <li><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>About 1 minute, one question at a time</li>
-        <li><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>Danger signs are checked first</li>
-        <li><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-check"/></svg>Nothing you answer is saved</li>
-      </ul>
-      <div class="notice" role="note">
-        <svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-alert"/></svg>
-        <p><strong>Not a diagnosis.</strong> This gives general guidance on how urgently to seek care. It can't replace a doctor, nurse or emergency services. If you're worried, get help.</p>
+    <section class="landing" id="screen-start" aria-labelledby="start-title">
+      <div class="hero">
+        <p class="eyebrow">Free · Private · About a minute</p>
+        <h1 id="start-title" tabindex="-1">Not sure how urgent your symptoms are?</h1>
+        <p class="lead">Answer a few short questions and get clear guidance: call emergency services, get care today, see a doctor soon, or rest at home.</p>
+        <ul class="trust">
+          <li><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-shield"/></svg><span><strong>Danger signs first.</strong> Anything serious is flagged straight away.</span></li>
+          <li><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-eye"/></svg><span><strong>Fully explained.</strong> See exactly which rules led to your result.</span></li>
+          <li><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-lock"/></svg><span><strong>Nothing is saved.</strong> Your answers are never stored.</span></li>
+        </ul>
       </div>
-      <button class="primary-btn" id="start-btn" type="button"><span>Start</span><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-      <p class="error" id="start-error" role="alert"></p>
+
+      <div class="card start-card">
+        <h2 class="card-title">What you'll find out</h2>
+        <ol class="outcomes">
+          <li class="lvl-emergency"><span class="outcome-icon"><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-alert"/></svg></span><span><strong>Emergency</strong><small>Call your local emergency number</small></span></li>
+          <li class="lvl-urgent"><span class="outcome-icon"><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-clock"/></svg></span><span><strong>Urgent</strong><small>Get medical care today</small></span></li>
+          <li class="lvl-soon"><span class="outcome-icon"><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-calendar"/></svg></span><span><strong>See a doctor soon</strong><small>Within 1 to 3 days</small></span></li>
+          <li class="lvl-selfcare"><span class="outcome-icon"><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-home"/></svg></span><span><strong>Self-care at home</strong><small>With clear signs to watch for</small></span></li>
+        </ol>
+        <button class="primary-btn" id="start-btn" type="button"><span>Start the check</span><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        <p class="error" id="start-error" role="alert"></p>
+        <p class="fineprint"><strong>Not a diagnosis.</strong> This gives general guidance on how urgently to seek care. It can't replace a doctor, nurse or emergency services. If you're worried, get help.</p>
+      </div>
     </section>
 
     <!-- Question -->
-    <section class="card" id="screen-question" aria-labelledby="question-text" hidden>
+    <section class="card question-card" id="screen-question" aria-labelledby="question-text" hidden>
       <div class="progress" aria-hidden="false">
         <div class="progress-text" id="progress-text">Question 1 of about 5</div>
         <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="progress-text" id="progress-track"><span id="progress-bar"></span></div>
       </div>
-      <h2 id="question-text" tabindex="-1"></h2>
+      <h1 id="question-text" tabindex="-1"></h1>
       <p class="hint" id="question-hint"></p>
       <div class="options" id="options" role="group" aria-labelledby="question-text"></div>
       <button class="primary-btn" id="continue-btn" type="button" hidden><span>Continue</span><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-arrow"/></svg></button>
@@ -117,42 +132,51 @@
     <section id="screen-result" aria-labelledby="result-label" hidden>
       <div class="result-card" id="result-card">
         <div class="result-head">
-          <svg class="ic result-icon" width="36" height="36" aria-hidden="true"><use id="result-icon" href="#i-alert"/></svg>
+          <span class="result-icon-wrap"><svg class="ic result-icon" width="32" height="32" aria-hidden="true"><use id="result-icon" href="#i-alert"/></svg></span>
           <div>
             <p class="result-kicker">Result</p>
-            <h2 id="result-label" tabindex="-1"></h2>
+            <h1 id="result-label" tabindex="-1"></h1>
           </div>
         </div>
         <p class="result-action" id="result-action"></p>
+        <ol class="scale" aria-hidden="true">
+          <li><span class="scale-bar"></span><span class="scale-label">Self-care</span></li>
+          <li><span class="scale-bar"></span><span class="scale-label">See a doctor</span></li>
+          <li><span class="scale-bar"></span><span class="scale-label">Urgent</span></li>
+          <li><span class="scale-bar"></span><span class="scale-label">Emergency</span></li>
+        </ol>
+        <ul class="chips" id="result-chips" aria-label="Based on"></ul>
       </div>
+      <div class="result-grid">
 
       <div class="card section-card">
-        <h3>Why we say this</h3>
+        <h2 class="section-title"><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-help"/></svg>Why we say this</h2>
         <ul class="reason-list" id="reasons"></ul>
         <div id="also-wrap" hidden>
-          <h4>Also noted</h4>
+          <h3 class="sub-title">Also noted</h3>
           <ul class="reason-list muted-list" id="also"></ul>
         </div>
       </div>
 
       <div class="card section-card">
-        <h3>What to do now</h3>
+        <h2 class="section-title"><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-list"/></svg>What to do now</h2>
         <ul class="bullet-list" id="advice"></ul>
       </div>
 
-      <div class="card section-card" id="watch-card" hidden>
-        <h3>Get care sooner if you notice</h3>
+      <div class="card section-card span-all" id="watch-card" hidden>
+        <h2 class="section-title"><svg class="ic" width="20" height="20" aria-hidden="true"><use href="#i-alert"/></svg>Get care sooner if you notice</h2>
         <ul class="bullet-list" id="watch"></ul>
         <p class="small">Trust your instincts: if you feel it's getting worse or you're worried, seek care.</p>
       </div>
 
-      <div class="card section-card">
+      </div>
+      <div class="card section-card span-all">
         <details class="how">
           <summary>How did we reach this? (the reasoning)</summary>
           <p class="small" id="resolution"></p>
-          <h4>Your answers</h4>
+          <h3 class="sub-title">Your answers</h3>
           <dl class="answers" id="answers"></dl>
-          <h4>Rules that fired</h4>
+          <h3 class="sub-title">Rules that fired</h3>
           <ol class="trace" id="trace"></ol>
         </details>
       </div>
@@ -167,7 +191,7 @@
   </main>
 
   <footer class="no-print">
-    General guidance only. Not a diagnosis. Your answers are used to work out this result and are not stored.
+    <p><strong>Triage Helper</strong> gives general guidance only and is not a diagnosis. Your answers are used to work out this result and are never stored.</p>
   </footer>
 
   <noscript><p class="noscript">Triage Helper needs JavaScript. If it is an emergency, call your local emergency number.</p></noscript>

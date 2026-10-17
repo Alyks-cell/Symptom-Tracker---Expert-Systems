@@ -31,8 +31,9 @@
     const names = { auto: "Auto", light: "Light", dark: "Dark" };
     const next = { auto: "light", light: "dark", dark: "auto" }[mode];
     $("theme-label").textContent = names[mode];
+    // The accessible name starts with the visible label (WCAG 2.5.3).
     themeToggle.setAttribute("aria-label",
-      `Theme: ${mode === "auto" ? "follows your system" : mode}. Activate to switch to ${next === "auto" ? "follow your system" : next}.`);
+      `${names[mode]} theme${mode === "auto" ? ", follows your system" : ""}. Activate to switch to ${next === "auto" ? "follow your system" : next}.`);
   }
 
   themeToggle.addEventListener("click", () => {
@@ -233,6 +234,10 @@
     lastResult = r;
     const card = $("result-card");
     card.className = `result-card level-${r.key}`;
+    card.dataset.level = String(r.level);
+    // Chips recap the two answers that frame the result.
+    const recap = r.answers.filter((a) => a.question === "Age group" || a.question === "Main problem");
+    $("result-chips").replaceChildren(...recap.map((a) => el("li", { text: a.answer })));
     $("result-icon").setAttribute("href", `#i-${LEVEL_ICONS[r.key]}`);
     $("result-label").textContent = r.label;
     $("result-action").textContent = r.action;

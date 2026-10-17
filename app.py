@@ -620,6 +620,7 @@ class AppHandler(SimpleHTTPRequestHandler):
         ".webmanifest": "application/manifest+json",
         ".js": "text/javascript",
         ".svg": "image/svg+xml",
+        ".woff2": "font/woff2",
     }
 
     def __init__(self, *args, **kwargs):
