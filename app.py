@@ -42,13 +42,15 @@ DISCLAIMER = (
 # Knowledge base: questions
 # ---------------------------------------------------------------------------
 # type "single": pick one. type "multi": pick any; "none" is exclusive.
-# `complaint`: the question is only asked for that main problem.
+# `when`: conditions (same format as rule conditions) that must hold for the
+# question to be asked. `complaint` is shorthand for a main-problem condition.
 
-def _q(qid, short, text, qtype, options, why, complaint=None):
+def _q(qid, short, text, qtype, options, why, complaint=None, when=None):
+    conditions = ([("complaint", "is", complaint)] if complaint else []) + list(when or [])
     return {
         "id": qid, "short": short, "text": text, "type": qtype,
         "options": [{"value": v, "label": label} for v, label in options],
-        "why": why, "complaint": complaint,
+        "why": why, "when": conditions,
     }
 
 
@@ -116,6 +118,11 @@ QUESTIONS = [
     ], "These signs can mean a fever is more than a simple infection, so they raise the urgency.", "fever"),
 
     # ── Cough / breathing ──────────────────────────────────────────────────
+    _q("choking", "Sudden start", "Did the cough start suddenly while eating or playing with small objects?", "single", [
+        ("yes", "Yes, it started suddenly"),
+        ("no", "No"),
+    ], "In young children a sudden cough while eating or playing can mean something is stuck in the airway, "
+       "which needs different handling from an ordinary cough.", "cough", [("age", "in", ["baby_u3m", "baby", "child"])]),
     _q("cough_breath", "Breathing", "How is your breathing?", "single", [
         ("normal", "Normal"),
         ("exert", "A bit short of breath when active or climbing stairs"),
@@ -183,6 +190,15 @@ QUESTIONS = [
         ("d2_7", "2 to 7 days"),
         ("d7p", "More than 7 days"),
     ], "Most stomach upsets pass within a couple of days.", "stomach"),
+
+    # ── Young children, any of the five problems ───────────────────────────
+    _q("feeding", "Drinking or feeding", "Is the child drinking or feeding normally?", "single", [
+        ("normal", "Yes, as usual"),
+        ("less", "Less than usual"),
+        ("refusing", "Refusing most drinks or feeds, or far fewer wet nappies or trips to the toilet"),
+    ], "Babies and young children become dehydrated much faster than adults, so how well they are drinking "
+       "is one of the most important signs.", None,
+       [("age", "in", ["baby_u3m", "baby", "child"]), ("complaint", "in", ["fever", "cough", "throat", "headache", "stomach"])]),
 ]
 
 QUESTION_BY_ID = {q["id"]: q for q in QUESTIONS}
@@ -282,6 +298,9 @@ RULES = [
     _r("C0", 1, [("complaint", "is", "cough")],
        "Most coughs come from colds and clear up on their own within about 3 weeks."),
 
+    _r("C12", 3, [("complaint", "is", "cough"), ("choking", "is", "yes")],
+       "A cough that started suddenly while eating or playing with small objects can mean something is stuck in the airway and should be assessed today."),
+
     # ── Sore throat / cold ─────────────────────────────────────────────────
     _r("S1", 4, [("complaint", "is", "throat"), ("throat_sx", "has", ["drool"])],
        "Being unable to swallow saliva, or drooling, can mean the airway is at risk and needs emergency care."),
@@ -343,6 +362,12 @@ RULES = [
        "Stomach symptoms lasting more than 2 days in a baby, child or older adult should be checked."),
     _r("G0", 1, [("complaint", "is", "stomach")],
        "Most stomach upsets pass within a couple of days with fluids and rest."),
+
+    # ── Young children: drinking and feeding ───────────────────────────────
+    _r("D1", 3, [("age", "in", YOUNG), ("feeding", "is", "refusing")],
+       "A baby or child who is refusing most drinks or feeds, or passing much less urine, is at risk of dehydration and should be assessed today."),
+    _r("D2", 2, [("age", "in", BABIES), ("feeding", "is", "less")],
+       "A baby who is feeding less than usual should be checked by a doctor soon."),
 
     # ── Not covered ────────────────────────────────────────────────────────
     _r("X1", 2, [("complaint", "is", "other")],
@@ -499,8 +524,8 @@ def rules_using(qid):
 
 
 def applies(question, facts):
-    wanted = question["complaint"]
-    return wanted is None or facts.get("complaint") == wanted
+    """A question is asked only when all of its conditions hold."""
+    return all(match(c, facts) for c in question["when"])
 
 
 def unanswered(facts):

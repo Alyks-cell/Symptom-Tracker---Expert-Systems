@@ -15,7 +15,7 @@ Emergency, Urgent, See a doctor soon, or Self-care at home.
 | Working memory | `facts` | The answers given so far |
 | Inference engine | `fire_rules()` | **Forward chaining**: every rule whose conditions all hold fires |
 | Conflict resolution | `build_result()` | The **highest urgency wins**, so a danger sign is never outvoted |
-| Question control | `next_step()` | Asks the next *relevant* question; **stops early** on an emergency |
+| Question control | `next_step()` | Asks the next *relevant* question (some only appear for certain ages or earlier answers); **stops early** on an emergency |
 | Explanation facility | `describe_rule()`, `rules_using()` | "Why am I asked this?" and "How did we reach this?" with the rules in IF-THEN form |
 
 Safety choices: danger signs are asked first; ties and doubt resolve upward; every result shows a
@@ -30,7 +30,7 @@ python app.py        # then open http://127.0.0.1:8000
 python -m unittest test_app.py
 ```
 
-The tests check knowledge-base consistency, every reachable question path (~2,000), and safety
+The tests check knowledge-base consistency, every reachable question path (about 4,500), and safety
 properties: any danger sign gives an emergency, extra risk never lowers urgency, a young baby is never
 triaged lower than an adult with the same answers, and results never name a diagnosis.
 

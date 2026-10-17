@@ -16,23 +16,25 @@ Generated from `app.py`. Each rule is `IF all conditions hold THEN conclude an u
 | Id | Question | Type | Asked when | Used by rules |
 |---|---|---|---|---|
 | `redflags` | Right now, do you have any of these? | multi | always | 9 |
-| `age` | How old is the person who needs advice? | single | always | 20 |
-| `complaint` | What is the main problem? | single | always | 58 |
+| `age` | How old is the person who needs advice? | single | always | 22 |
+| `complaint` | What is the main problem? | single | always | 59 |
 | `risk` | Does any of this apply? A long-term illness (heart, lung, kidney, diabetes), a weakened immune system (for example chemotherapy, steroids or a transplant), or pregnancy. | single | always | 5 |
-| `temp` | What is the highest temperature so far? | single | main problem = fever | 8 |
-| `fever_days` | How long has the fever lasted? | single | main problem = fever | 1 |
-| `fever_sx` | Any of these with the fever? | multi | main problem = fever | 6 |
-| `cough_breath` | How is your breathing? | single | main problem = cough | 3 |
-| `cough_days` | How long have you had the cough? | single | main problem = cough | 2 |
-| `cough_sx` | Any of these? | multi | main problem = cough | 6 |
-| `throat_sx` | Any of these? | multi | main problem = throat | 5 |
-| `throat_days` | How long has the sore throat lasted? | single | main problem = throat | 1 |
-| `ha_onset` | How did the headache start? | single | main problem = headache | 1 |
-| `ha_sx` | Any of these? | multi | main problem = headache | 5 |
-| `ha_known` | Have you had headaches like this before? | single | main problem = headache | 2 |
-| `gi_sx` | Any of these? | multi | main problem = stomach | 5 |
-| `gi_fluids` | Can you keep fluids down? | single | main problem = stomach | 3 |
-| `gi_days` | How long have the symptoms lasted? | single | main problem = stomach | 2 |
+| `temp` | What is the highest temperature so far? | single | Main problem is “Fever, or feeling feverish” | 8 |
+| `fever_days` | How long has the fever lasted? | single | Main problem is “Fever, or feeling feverish” | 1 |
+| `fever_sx` | Any of these with the fever? | multi | Main problem is “Fever, or feeling feverish” | 6 |
+| `choking` | Did the cough start suddenly while eating or playing with small objects? | single | Main problem is “Cough or a breathing problem” AND Age group is one of: “Under 3 months”; “3 to 11 months”; “1 to 12 years” | 1 |
+| `cough_breath` | How is your breathing? | single | Main problem is “Cough or a breathing problem” | 3 |
+| `cough_days` | How long have you had the cough? | single | Main problem is “Cough or a breathing problem” | 2 |
+| `cough_sx` | Any of these? | multi | Main problem is “Cough or a breathing problem” | 6 |
+| `throat_sx` | Any of these? | multi | Main problem is “Sore throat or cold” | 5 |
+| `throat_days` | How long has the sore throat lasted? | single | Main problem is “Sore throat or cold” | 1 |
+| `ha_onset` | How did the headache start? | single | Main problem is “Headache” | 1 |
+| `ha_sx` | Any of these? | multi | Main problem is “Headache” | 5 |
+| `ha_known` | Have you had headaches like this before? | single | Main problem is “Headache” | 2 |
+| `gi_sx` | Any of these? | multi | Main problem is “Stomach upset (vomiting, diarrhea, belly pain)” | 5 |
+| `gi_fluids` | Can you keep fluids down? | single | Main problem is “Stomach upset (vomiting, diarrhea, belly pain)” | 3 |
+| `gi_days` | How long have the symptoms lasted? | single | Main problem is “Stomach upset (vomiting, diarrhea, belly pain)” | 2 |
+| `feeding` | Is the child drinking or feeding normally? | single | Age group is one of: “Under 3 months”; “3 to 11 months”; “1 to 12 years” AND Main problem is one of: “Fever, or feeling feverish”; “Cough or a breathing problem”; “Sore throat or cold”; “Headache”; “Stomach upset (vomiting, diarrhea, belly pain)” | 2 |
 
 ## Rules
 
@@ -76,6 +78,7 @@ Generated from `app.py`. Each rule is `IF all conditions hold THEN conclude an u
 | C10 | 2 See a doctor soon | Main problem is “Cough or a breathing problem” AND Cough warning signs includes: “Chest pain when breathing in or coughing” (any) | Chest pain when breathing or coughing should be checked soon. |
 | C11 | 2 See a doctor soon | Main problem is “Cough or a breathing problem” AND Cough warning signs includes: “Fever of 38 °C (100.4 °F) or higher” (any) AND Cough length is one of: “1 to 3 weeks”; “More than 3 weeks” | A cough with fever lasting over a week should be checked. |
 | C0 | 1 Self-care at home | Main problem is “Cough or a breathing problem” | Most coughs come from colds and clear up on their own within about 3 weeks. |
+| C12 | 3 Urgent | Main problem is “Cough or a breathing problem” AND Sudden start is “Yes, it started suddenly” | A cough that started suddenly while eating or playing with small objects can mean something is stuck in the airway and should be assessed today. |
 | S1 | 4 Emergency | Main problem is “Sore throat or cold” AND Throat warning signs includes: “Can't swallow your own saliva, or drooling” (any) | Being unable to swallow saliva, or drooling, can mean the airway is at risk and needs emergency care. |
 | S2 | 3 Urgent | Main problem is “Sore throat or cold” AND Throat warning signs includes: “Muffled voice, or can't open your mouth fully” (any) | A muffled voice or being unable to open the mouth fully should be assessed today. |
 | S3 | 3 Urgent | Main problem is “Sore throat or cold” AND Higher-risk condition is “Yes” AND Throat warning signs includes: “High fever (38.5 °C / 101.3 °F or more) and no cough” (any) | A high fever with a sore throat and a higher-risk condition should be assessed today. |
@@ -104,6 +107,8 @@ Generated from `app.py`. Each rule is `IF all conditions hold THEN conclude an u
 | G10 | 2 See a doctor soon | Main problem is “Stomach upset (vomiting, diarrhea, belly pain)” AND Stomach length is “More than 7 days” | Stomach symptoms lasting more than a week should be checked. |
 | G11 | 2 See a doctor soon | Main problem is “Stomach upset (vomiting, diarrhea, belly pain)” AND Stomach length is “2 to 7 days” AND Age group is one of: “3 to 11 months”; “1 to 12 years”; “65 or older” | Stomach symptoms lasting more than 2 days in a baby, child or older adult should be checked. |
 | G0 | 1 Self-care at home | Main problem is “Stomach upset (vomiting, diarrhea, belly pain)” | Most stomach upsets pass within a couple of days with fluids and rest. |
+| D1 | 3 Urgent | Age group is one of: “Under 3 months”; “3 to 11 months”; “1 to 12 years” AND Drinking or feeding is “Refusing most drinks or feeds, or far fewer wet nappies or trips to the toilet” | A baby or child who is refusing most drinks or feeds, or passing much less urine, is at risk of dehydration and should be assessed today. |
+| D2 | 2 See a doctor soon | Age group is one of: “Under 3 months”; “3 to 11 months” AND Drinking or feeding is “Less than usual” | A baby who is feeding less than usual should be checked by a doctor soon. |
 | X1 | 2 See a doctor soon | Main problem is “Something else” | This checker only covers fever, cough, sore throat, headache and stomach upset. For anything else, talk to a doctor or nurse. |
 
-Total: 67 rules, 18 questions.
+Total: 70 rules, 20 questions.

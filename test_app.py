@@ -58,6 +58,16 @@ class KnowledgeBaseTests(unittest.TestCase):
                 else:
                     self.assertEqual(app.QUESTION_BY_ID[fact]["type"], "single", rule["id"])
 
+    def test_every_question_condition_references_a_real_question_and_option(self):
+        for q in app.QUESTIONS:
+            for fact, op, value in q["when"]:
+                self.assertIn(fact, app.QUESTION_BY_ID, q["id"])
+                valid = set(option_values(fact))
+                for v in (value if isinstance(value, list) else [value]):
+                    self.assertIn(v, valid, f"{q['id']} asked-when {fact}={v}")
+                # A question may only depend on questions asked earlier.
+                self.assertLess(app.QUESTIONS.index(app.QUESTION_BY_ID[fact]), app.QUESTIONS.index(q), q["id"])
+
     def test_every_question_is_used_by_some_rule(self):
         for q in app.QUESTIONS:
             self.assertTrue(app.rules_using(q["id"]), f"{q['id']} is asked but no rule uses it")
@@ -142,7 +152,7 @@ class ExhaustivePathTests(unittest.TestCase):
             self.assertTrue(result["reasons"], facts)
             self.assertTrue(result["trace"], facts)
             self.assertTrue(result["answers"], facts)
-            self.assertLessEqual(len(facts), 8, facts)
+            self.assertLessEqual(len(facts), 9, facts)
 
     def test_self_care_is_never_returned_with_a_warning_finding(self):
         for facts, result in self.paths:
@@ -201,6 +211,73 @@ class EngineBehaviourTests(unittest.TestCase):
         self.assertEqual(trace["id"], "RF2")
         self.assertTrue(trace["if"][0].startswith("Danger signs includes"))
         self.assertIn("heart", trace["then"])
+
+
+class YoungChildQuestionTests(unittest.TestCase):
+    BASE = {"redflags": ["none"], "risk": "no"}
+
+    def asked(self, facts):
+        facts = dict(facts)
+        asked = []
+        while True:
+            step = app.next_step(facts)
+            if step["done"]:
+                return asked, step["result"]
+            q = app.QUESTION_BY_ID[step["question"]["id"]]
+            asked.append(q["id"])
+            if q["type"] == "multi":
+                facts[q["id"]] = ["none"]
+                continue
+            # Choose an answer that does not end the check as an emergency.
+            for value in reversed(option_values(q["id"])):
+                nxt = app.next_step({**facts, q["id"]: value})
+                if not (nxt["done"] and nxt["result"]["level"] == 4):
+                    break
+            facts[q["id"]] = value
+
+    def test_adults_are_never_asked_the_child_questions(self):
+        for complaint in ("fever", "cough", "throat", "headache", "stomach"):
+            asked, _ = self.asked({**self.BASE, "age": "adult", "complaint": complaint})
+            self.assertNotIn("feeding", asked, complaint)
+            self.assertNotIn("choking", asked, complaint)
+
+    def test_children_are_asked_about_feeding_for_every_covered_problem(self):
+        for age in ("baby", "child"):
+            for complaint in ("fever", "cough", "throat", "headache", "stomach"):
+                asked, _ = self.asked({**self.BASE, "age": age, "complaint": complaint})
+                self.assertIn("feeding", asked, f"{age}/{complaint}")
+                self.assertEqual(asked[-1], "feeding")
+
+    def test_feeding_is_not_asked_when_the_problem_is_not_covered(self):
+        asked, _ = self.asked({**self.BASE, "age": "child", "complaint": "other"})
+        self.assertNotIn("feeding", asked)
+
+    def test_choking_is_only_asked_for_a_young_childs_cough_and_comes_first(self):
+        asked, _ = self.asked({**self.BASE, "age": "child", "complaint": "cough"})
+        self.assertEqual(asked[0], "choking")
+        asked, _ = self.asked({**self.BASE, "age": "child", "complaint": "fever"})
+        self.assertNotIn("choking", asked)
+
+    def test_a_sudden_cough_while_eating_is_urgent(self):
+        facts = {**self.BASE, "age": "child", "complaint": "cough", "choking": "yes", "cough_breath": "normal",
+                 "cough_days": "lt1w", "cough_sx": ["none"], "feeding": "normal"}
+        result = app.next_step(facts)["result"]
+        self.assertEqual(result["level"], 3)
+        self.assertEqual(result["reasons"][0]["id"], "C12")
+
+    def test_refusing_drinks_is_urgent_for_a_child_and_less_feeding_matters_for_a_baby(self):
+        mild = {**self.BASE, "age": "child", "complaint": "throat", "throat_sx": ["none"], "throat_days": "lt1w"}
+        self.assertEqual(app.next_step({**mild, "feeding": "normal"})["result"]["level"], 1)
+        self.assertEqual(app.next_step({**mild, "feeding": "less"})["result"]["level"], 1)
+        refusing = app.next_step({**mild, "feeding": "refusing"})["result"]
+        self.assertEqual((refusing["level"], refusing["reasons"][0]["id"]), (3, "D1"))
+        baby = {**mild, "age": "baby"}
+        self.assertEqual(app.next_step({**baby, "feeding": "less"})["result"]["level"], 2)
+
+    def test_young_children_with_a_mild_problem_who_drink_normally_can_still_be_self_care(self):
+        facts = {**self.BASE, "age": "child", "complaint": "throat", "throat_sx": ["none"],
+                 "throat_days": "lt1w", "feeding": "normal"}
+        self.assertEqual(app.next_step(facts)["result"]["level"], 1)
 
 
 class ValidationTests(unittest.TestCase):
