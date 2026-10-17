@@ -1,9 +1,0 @@
-{
-  "name": "symptom-triage-helper",
-  "version": "1.0.0",
-  "description": "Rule-based expert system for symptom triage",
-  "scripts": {
-    "dev": "python app.py",
-    "start": "python app.py"
-  }
-}
