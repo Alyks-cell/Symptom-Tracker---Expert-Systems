@@ -13,6 +13,8 @@ dist/
 # OS / Editor artifacts
 .DS_Store
 Thumbs.db
-Microsoft/
 .vscode/
 .idea/
+
+# Node (test tooling)
+node_modules/

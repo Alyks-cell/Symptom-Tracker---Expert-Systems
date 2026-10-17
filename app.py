@@ -349,8 +349,6 @@ RULES = [
        "This checker only covers fever, cough, sore throat, headache and stomach upset. For anything else, talk to a doctor or nurse."),
 ]
 
-RULE_BY_ID = {r["id"]: r for r in RULES}
-
 # ---------------------------------------------------------------------------
 # Advice shown with the result
 # ---------------------------------------------------------------------------
@@ -684,9 +682,6 @@ class AppHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def log_message(self, fmt, *args):
-        # Request lines only; answers are in the POST body and are never logged.
-        super().log_message(fmt, *args)
 
 
 if __name__ == "__main__":
