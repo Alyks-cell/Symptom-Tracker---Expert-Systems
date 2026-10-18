@@ -7,7 +7,19 @@ Emergency, Urgent, See a doctor soon, or Self-care at home.
 > a doctor, nurse or emergency services. In an emergency, call your local emergency number.
 > Answers are not stored.
 
-## Expert-system architecture (see `app.py`)
+## Project layout
+
+```
+triage/knowledge.py   questions, rules, advice text (the knowledge base)
+triage/engine.py      forward chaining, conflict resolution, question control, explanations
+app.py                local web server (re-exports triage, so `import app` still works)
+api/index.py          Vercel function; shares its JSON handling with app.py
+index.html, sw.js, manifest.webmanifest
+static/css, static/js, static/fonts, static/icons
+test_app.py           knowledge-base and safety tests
+```
+
+## Expert-system architecture (see `triage/`)
 
 | Component | Where | What it does |
 |---|---|---|

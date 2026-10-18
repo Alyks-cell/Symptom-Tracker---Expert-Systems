@@ -18,7 +18,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Triage Helper">
   <link rel="preload" href="/static/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/css/style.css">
   <script>
     /* Follow the system theme before first paint, unless the user chose one. */
     (function () {
@@ -110,7 +110,10 @@
     <!-- Question -->
     <section class="card question-card" id="screen-question" aria-labelledby="question-text" hidden>
       <div class="progress" aria-hidden="false">
-        <div class="progress-text" id="progress-text">Question 1 of about 5</div>
+        <div class="progress-row">
+          <button class="text-btn back-btn" id="back-btn" type="button"><svg class="ic" width="18" height="18" aria-hidden="true"><use href="#i-back"/></svg> Back</button>
+          <div class="progress-text" id="progress-text">Question 1 of about 5</div>
+        </div>
         <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="progress-text" id="progress-track"><span id="progress-bar"></span></div>
       </div>
       <h1 id="question-text" tabindex="-1"></h1>
@@ -122,9 +125,6 @@
         <p id="why-text"></p>
         <p class="why-rules" id="why-rules"></p>
       </details>
-      <div class="nav-row">
-        <button class="text-btn" id="back-btn" type="button"><svg class="ic" width="18" height="18" aria-hidden="true"><use href="#i-back"/></svg> Back</button>
-      </div>
       <p class="error" id="error" role="alert"></p>
     </section>
 
@@ -195,7 +195,7 @@
   </footer>
 
   <noscript><p class="noscript">Triage Helper needs JavaScript. If it is an emergency, call your local emergency number.</p></noscript>
-  <script src="/static/app.js" defer></script>
+  <script src="/static/js/app.js" defer></script>
   <script>if ("serviceWorker" in navigator) window.addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });</script>
 </body>
 </html>

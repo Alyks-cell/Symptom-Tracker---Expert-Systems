@@ -7,10 +7,10 @@ import sys
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app import handle_triage  # noqa: E402
+from app import JsonApiMixin, handle_triage  # noqa: E402
 
 
-class handler(BaseHTTPRequestHandler):
+class handler(JsonApiMixin, BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path.split("?")[0] not in ("/triage", "/api/triage"):
             self.send_error(404)
@@ -28,24 +28,3 @@ class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         # Health check
         self._send_json({"status": "ok", "app": "Symptom Triage Helper"})
-
-    def _read_json(self):
-        try:
-            length = int(self.headers.get("Content-Length", 0))
-            if length <= 0 or length > 20000:
-                raise ValueError
-            data = json.loads(self.rfile.read(length))
-            if not isinstance(data, dict):
-                raise ValueError
-            return data
-        except Exception:
-            return None
-
-    def _send_json(self, obj, status=200):
-        body = json.dumps(obj).encode()
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
-        self.end_headers()
-        self.wfile.write(body)

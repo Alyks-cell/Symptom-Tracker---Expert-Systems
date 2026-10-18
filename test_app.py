@@ -105,14 +105,14 @@ class SafetyTests(unittest.TestCase):
 
     def test_mild_adult_problems_are_self_care(self):
         mild = {
-            "fever": {"temp": "t38", "fever_days": "d0", "fever_sx": ["none"]},
+            "fever": {"temp": "t38", "fever_days": "d0", "fever_sx": ["none"], "medicine": "helped"},
             "cough": {"cough_breath": "normal", "cough_days": "lt1w", "cough_sx": ["none"]},
             "throat": {"throat_sx": ["none"], "throat_days": "lt1w"},
-            "headache": {"ha_onset": "gradual", "ha_sx": ["none"], "ha_known": "yes"},
+            "headache": {"ha_onset": "gradual", "ha_sx": ["none"], "ha_known": "yes", "medicine": "helped"},
             "stomach": {"gi_sx": ["none"], "gi_fluids": "yes", "gi_days": "lt2"},
         }
         for complaint, extra in mild.items():
-            facts = {"redflags": ["none"], "age": "adult", "complaint": complaint, "risk": "no", **extra}
+            facts = {"redflags": ["none"], "age": "adult", "complaint": complaint, "risk": "no", "trend": "better", **extra}
             result = app.next_step(facts)["result"]
             self.assertEqual(result["level"], 1, complaint)
             self.assertTrue(result["advice"], complaint)
@@ -120,7 +120,7 @@ class SafetyTests(unittest.TestCase):
 
     def test_highest_urgency_wins_over_milder_findings(self):
         facts = {"redflags": ["none"], "age": "adult", "complaint": "fever", "risk": "no",
-                 "temp": "t40", "fever_days": "d3p", "fever_sx": ["urine"]}
+                 "temp": "t40", "fever_days": "d3p", "fever_sx": ["urine"], "trend": "better", "medicine": "helped"}
         result = app.next_step(facts)["result"]
         self.assertEqual(result["level"], 3)
         self.assertTrue(result["also_noted"])
@@ -152,7 +152,7 @@ class ExhaustivePathTests(unittest.TestCase):
             self.assertTrue(result["reasons"], facts)
             self.assertTrue(result["trace"], facts)
             self.assertTrue(result["answers"], facts)
-            self.assertLessEqual(len(facts), 9, facts)
+            self.assertLessEqual(len(facts), 11, facts)
 
     def test_self_care_is_never_returned_with_a_warning_finding(self):
         for facts, result in self.paths:
@@ -199,11 +199,11 @@ class EngineBehaviourTests(unittest.TestCase):
             asked.append(step["question"]["id"])
             q = app.QUESTION_BY_ID[step["question"]["id"]]
             facts[q["id"]] = ["none"] if q["type"] == "multi" else option_values(q["id"])[-1]
-        self.assertEqual(asked, ["ha_onset", "ha_sx", "ha_known"])
+        self.assertEqual(asked, ["ha_onset", "ha_sx", "ha_known", "trend", "medicine"])
 
     def test_progress_counts_answered_and_remaining(self):
         step = app.next_step({"redflags": ["none"], "age": "adult", "complaint": "fever", "risk": "no"})
-        self.assertEqual(step["progress"], {"answered": 4, "total": 7})
+        self.assertEqual(step["progress"], {"answered": 4, "total": 9})
 
     def test_trace_is_written_in_if_then_form(self):
         facts = {"redflags": ["chest"]}
@@ -214,7 +214,7 @@ class EngineBehaviourTests(unittest.TestCase):
 
 
 class YoungChildQuestionTests(unittest.TestCase):
-    BASE = {"redflags": ["none"], "risk": "no"}
+    BASE = {"redflags": ["none"], "risk": "no", "trend": "better", "medicine": "helped"}
 
     def asked(self, facts):
         facts = dict(facts)
@@ -278,6 +278,29 @@ class YoungChildQuestionTests(unittest.TestCase):
         facts = {**self.BASE, "age": "child", "complaint": "throat", "throat_sx": ["none"],
                  "throat_days": "lt1w", "feeding": "normal"}
         self.assertEqual(app.next_step(facts)["result"]["level"], 1)
+
+
+class CourseOfIllnessTests(unittest.TestCase):
+    MILD_FEVER = {"redflags": ["none"], "age": "adult", "complaint": "fever", "risk": "no", "temp": "t38",
+                  "fever_days": "d0", "fever_sx": ["none"], "trend": "better", "medicine": "helped"}
+
+    def level(self, **changes):
+        result = app.next_step({**self.MILD_FEVER, **changes})["result"]
+        return result["level"], result["reasons"][0]["id"]
+
+    def test_baseline_is_self_care(self):
+        self.assertEqual(self.level()[0], 1)
+
+    def test_rapid_worsening_is_urgent_for_everyone(self):
+        self.assertEqual(self.level(trend="rapid"), (3, "T1"))
+
+    def test_worsening_matters_for_the_young_old_and_higher_risk_only(self):
+        self.assertEqual(self.level(trend="worse")[0], 1)
+        self.assertEqual(self.level(trend="worse", age="senior", temp="under38"), (2, "T2"))
+        self.assertEqual(self.level(trend="worse", risk="yes", temp="under38"), (2, "T3"))
+
+    def test_medicine_that_does_not_help_needs_a_check(self):
+        self.assertEqual(self.level(medicine="nohelp"), (2, "M1"))
 
 
 class ValidationTests(unittest.TestCase):
