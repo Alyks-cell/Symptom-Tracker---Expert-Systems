@@ -1,8 +1,3 @@
-/* ---------------------------------------------------------------
-   app.js — Symptom Triage Helper front end.
-   The expert system lives on the server (app.py); this file only asks
-   the questions it returns and shows its explanation. Nothing is stored.
-   --------------------------------------------------------------- */
 (function () {
   "use strict";
 
@@ -10,7 +5,6 @@
   const screens = { start: $("screen-start"), question: $("screen-question"), result: $("screen-result") };
   const OFFLINE_HELP = "Couldn't reach the checker. If it might be an emergency, call your local emergency number now.";
 
-  /* ── Theme: follows the system until the user picks ───────────── */
   const themeToggle = $("theme-toggle");
   const systemDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
   const THEME_KEY = "triage-theme";
@@ -31,7 +25,6 @@
     const names = { auto: "Auto", light: "Light", dark: "Dark" };
     const next = { auto: "light", light: "dark", dark: "auto" }[mode];
     $("theme-label").textContent = names[mode];
-    // The accessible name starts with the visible label (WCAG 2.5.3).
     themeToggle.setAttribute("aria-label",
       `${names[mode]} theme${mode === "auto" ? ", follows your system" : ""}. Activate to switch to ${next === "auto" ? "follow your system" : next}.`);
   }
@@ -41,7 +34,7 @@
     try {
       if (next === "auto") localStorage.removeItem(THEME_KEY);
       else localStorage.setItem(THEME_KEY, next);
-    } catch (err) { /* private mode: ignore */ }
+    } catch (err) {}
     applyTheme();
   });
   if (systemDark) {
@@ -51,7 +44,6 @@
   }
   applyTheme();
 
-  /* ── Helpers ──────────────────────────────────────────────────── */
   function el(tag, props, ...children) {
     const node = document.createElement(tag);
     Object.entries(props || {}).forEach(([k, v]) => {
@@ -88,9 +80,8 @@
     if (focusEl) focusEl.focus({ preventScroll: true });
   }
 
-  /* ── Consultation state ───────────────────────────────────────── */
   let facts = {};
-  let history = [];   // question ids in the order they were answered
+  let history = [];
   let busy = false;
 
   async function ask() {
@@ -118,7 +109,6 @@
     }
   }
 
-  /* ── Start ────────────────────────────────────────────────────── */
   $("start-btn").addEventListener("click", async () => {
     facts = {};
     history = [];
@@ -129,7 +119,6 @@
     btn.classList.remove("is-loading");
   });
 
-  /* ── Question screen ──────────────────────────────────────────── */
   let currentQuestion = null;
 
   function renderQuestion(q, progress) {
@@ -176,7 +165,6 @@
     announce($("progress-text").textContent + ": " + q.text);
   }
 
-  // "None of these" is exclusive; picking anything else clears it.
   $("options").addEventListener("change", (e) => {
     if (!currentQuestion || currentQuestion.type !== "multi" || e.target.type !== "checkbox") return;
     const boxes = Array.from($("options").querySelectorAll("input"));
@@ -208,7 +196,6 @@
     advance($("error"));
   });
 
-  /* ── Result screen ────────────────────────────────────────────── */
   const LEVEL_ICONS = { emergency: "alert", urgent: "clock", soon: "calendar", selfcare: "home" };
   let lastResult = null;
 
@@ -235,7 +222,6 @@
     const card = $("result-card");
     card.className = `result-card level-${r.key}`;
     card.dataset.level = String(r.level);
-    // Chips recap the two answers that frame the result.
     const recap = r.answers.filter((a) => a.question === "Age group" || a.question === "Main problem");
     $("result-chips").replaceChildren(...recap.map((a) => el("li", { text: a.answer })));
     $("result-icon").setAttribute("href", `#i-${LEVEL_ICONS[r.key]}`);

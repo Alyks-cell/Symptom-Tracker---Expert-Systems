@@ -1,9 +1,7 @@
-import itertools
 import unittest
 
 import app
 
-SAFE_FLAGS = ["none"]
 DANGER_FLAGS = [o["value"] for o in app.QUESTION_BY_ID["redflags"]["options"] if o["value"] != "none"]
 
 
@@ -33,7 +31,7 @@ def walk(facts=None):
     question = step["question"]
     for choice in answer_choices(app.QUESTION_BY_ID[question["id"]]):
         if question["id"] == "redflags" and choice != ["none"]:
-            continue  # danger-sign branches are tested separately
+            continue
         yield from walk({**facts, question["id"]: choice})
 
 
@@ -49,7 +47,7 @@ class KnowledgeBaseTests(unittest.TestCase):
             self.assertTrue(rule["if"], rule["id"])
             for fact, op, value in rule["if"]:
                 self.assertIn(fact, app.QUESTION_BY_ID, f"{rule['id']}: {fact}")
-                self.assertIn(op, {"is", "in", "has", "lacks"}, rule["id"])
+                self.assertIn(op, {"is", "in", "has"}, rule["id"])
                 valid = set(option_values(fact))
                 for v in (value if isinstance(value, list) else [value]):
                     self.assertIn(v, valid, f"{rule['id']}: {fact}={v}")
@@ -65,7 +63,7 @@ class KnowledgeBaseTests(unittest.TestCase):
                 valid = set(option_values(fact))
                 for v in (value if isinstance(value, list) else [value]):
                     self.assertIn(v, valid, f"{q['id']} asked-when {fact}={v}")
-                # A question may only depend on questions asked earlier.
+
                 self.assertLess(app.QUESTIONS.index(app.QUESTION_BY_ID[fact]), app.QUESTIONS.index(q), q["id"])
 
     def test_every_question_is_used_by_some_rule(self):
@@ -228,7 +226,7 @@ class YoungChildQuestionTests(unittest.TestCase):
             if q["type"] == "multi":
                 facts[q["id"]] = ["none"]
                 continue
-            # Choose an answer that does not end the check as an emergency.
+
             for value in reversed(option_values(q["id"])):
                 nxt = app.next_step({**facts, q["id"]: value})
                 if not (nxt["done"] and nxt["result"]["level"] == 4):
@@ -325,7 +323,6 @@ class ValidationTests(unittest.TestCase):
         status, payload = app.handle_triage({})
         self.assertEqual(status, 200)
         self.assertFalse(payload["done"])
-
 
 if __name__ == "__main__":
     unittest.main()

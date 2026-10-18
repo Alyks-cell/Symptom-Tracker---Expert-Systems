@@ -1,8 +1,5 @@
 """Knowledge base: urgency levels, questions, IF-THEN rules and advice text."""
 
-# ---------------------------------------------------------------------------
-# Urgency levels
-# ---------------------------------------------------------------------------
 
 LEVELS = {
     4: {"key": "emergency", "label": "Emergency", "action": "Call your local emergency number now."},
@@ -17,12 +14,6 @@ DISCLAIMER = (
     "(for example 911, 999 or 112) instead of using this checker."
 )
 
-# ---------------------------------------------------------------------------
-# Knowledge base: questions
-# ---------------------------------------------------------------------------
-# type "single": pick one. type "multi": pick any; "none" is exclusive.
-# `when`: conditions (same format as rule conditions) that must hold for the
-# question to be asked. `complaint` is shorthand for a main-problem condition.
 
 def _q(qid, short, text, qtype, options, why, complaint=None, when=None):
     conditions = ([("complaint", "is", complaint)] if complaint else []) + list(when or [])
@@ -74,7 +65,7 @@ QUESTIONS = [
        "Some conditions make infections and other problems riskier, so the same symptoms may need "
        "care sooner."),
 
-    # ── Fever ──────────────────────────────────────────────────────────────
+
     _q("temp", "Highest temperature", "What is the highest temperature so far?", "single", [
         ("under38", "Under 38 °C (100.4 °F)"),
         ("t38", "38 to 38.9 °C (100.4 to 102 °F)"),
@@ -96,7 +87,7 @@ QUESTIONS = [
         ("none", "None of these"),
     ], "These signs can mean a fever is more than a simple infection, so they raise the urgency.", "fever"),
 
-    # ── Cough / breathing ──────────────────────────────────────────────────
+
     _q("choking", "Sudden start", "Did the cough start suddenly while eating or playing with small objects?", "single", [
         ("yes", "Yes, it started suddenly"),
         ("no", "No"),
@@ -120,7 +111,7 @@ QUESTIONS = [
         ("none", "None of these"),
     ], "These signs change how urgently a cough should be looked at.", "cough"),
 
-    # ── Sore throat / cold ─────────────────────────────────────────────────
+
     _q("throat_sx", "Throat warning signs", "Any of these?", "multi", [
         ("drool", "Can't swallow your own saliva, or drooling"),
         ("muffled", "Muffled voice, or can't open your mouth fully"),
@@ -133,7 +124,7 @@ QUESTIONS = [
         ("w1p", "A week or more"),
     ], "Sore throats from colds usually settle within a week.", "throat"),
 
-    # ── Headache ───────────────────────────────────────────────────────────
+
     _q("ha_onset", "Headache start", "How did the headache start?", "single", [
         ("thunder", "Suddenly: the worst headache of my life, peaking within a minute"),
         ("gradual", "Gradually, over hours or days"),
@@ -151,7 +142,7 @@ QUESTIONS = [
         ("no", "No, this feels new or different"),
     ], "A new kind of headache is judged differently from one you already know.", "headache"),
 
-    # ── Stomach ────────────────────────────────────────────────────────────
+
     _q("gi_sx", "Stomach warning signs", "Any of these?", "multi", [
         ("bloodgi", "Vomiting blood, or black or bloody stools"),
         ("hard", "A very swollen, hard or rigid belly"),
@@ -170,7 +161,7 @@ QUESTIONS = [
         ("d7p", "More than 7 days"),
     ], "Most stomach upsets pass within a couple of days.", "stomach"),
 
-    # ── Course of the illness, any of the five problems ────────────────────
+
     _q("trend", "Trend", "Over the last day, how have the symptoms changed?", "single", [
         ("better", "Getting better"),
         ("same", "About the same"),
@@ -185,7 +176,7 @@ QUESTIONS = [
     ], "A fever or pain that does not respond to medicine is more likely to need a clinician.", None,
        [("complaint", "in", ["fever", "headache"])]),
 
-    # ── Young children, any of the five problems ───────────────────────────
+
     _q("feeding", "Drinking or feeding", "Is the child drinking or feeding normally?", "single", [
         ("normal", "Yes, as usual"),
         ("less", "Less than usual"),
@@ -198,16 +189,6 @@ QUESTIONS = [
 
 QUESTION_BY_ID = {q["id"]: q for q in QUESTIONS}
 
-# ---------------------------------------------------------------------------
-# Knowledge base: rules
-# ---------------------------------------------------------------------------
-# A rule is: id, level, if (list of conditions, ALL must hold), reason.
-# A condition is (fact, operator, value):
-#   "is"    answer equals value
-#   "in"    answer is one of the values
-#   "has"   a multi-answer contains any of the values
-#   "lacks" a multi-answer contains none of the values
-# Every complaint has a level-1 baseline rule, so there is always a conclusion.
 
 YOUNG = ["baby_u3m", "baby", "child"]
 BABIES = ["baby_u3m", "baby"]
@@ -220,7 +201,7 @@ def _r(rid, level, conditions, reason):
 
 
 RULES = [
-    # ── Danger signs (any age, any problem) ────────────────────────────────
+
     _r("RF1", 4, [("redflags", "has", ["breathing"])], "Severe trouble breathing can become life-threatening quickly."),
     _r("RF2", 4, [("redflags", "has", ["chest"])], "Chest pain, pressure or tightness can be a sign of a heart problem and needs emergency assessment."),
     _r("RF3", 4, [("redflags", "has", ["blue"])], "Blue or grey lips or face can mean the body is not getting enough oxygen."),
@@ -231,7 +212,7 @@ RULES = [
     _r("RF8", 4, [("redflags", "has", ["allergy"])], "Swelling of the lips, face or tongue, or throat tightness, can be a severe allergic reaction."),
     _r("RF9", 4, [("redflags", "has", ["selfharm"])], "You may be at risk of harm. Please contact emergency services or a crisis line now; you do not have to face this alone."),
 
-    # ── Fever ──────────────────────────────────────────────────────────────
+
     _r("F1", 4, [("complaint", "is", "fever"), ("age", "is", "baby_u3m"), ("temp", "in", FEVER_38)],
        "A fever of 38 °C or more in a baby under 3 months needs an emergency assessment, even if the baby looks well."),
     _r("F2", 3, [("complaint", "is", "fever"), ("age", "is", "baby_u3m")],
@@ -267,7 +248,7 @@ RULES = [
     _r("F0", 1, [("complaint", "is", "fever")],
        "Fever on its own is common with infections and often settles with rest and fluids."),
 
-    # ── Cough / breathing ──────────────────────────────────────────────────
+
     _r("C1", 3, [("complaint", "is", "cough"), ("cough_breath", "is", "rest")],
        "Being short of breath at rest or while talking should be assessed today."),
     _r("C2", 3, [("complaint", "is", "cough"), ("cough_sx", "has", ["blood"])],
@@ -296,7 +277,7 @@ RULES = [
     _r("C12", 3, [("complaint", "is", "cough"), ("choking", "is", "yes")],
        "A cough that started suddenly while eating or playing with small objects can mean something is stuck in the airway and should be assessed today."),
 
-    # ── Sore throat / cold ─────────────────────────────────────────────────
+
     _r("S1", 4, [("complaint", "is", "throat"), ("throat_sx", "has", ["drool"])],
        "Being unable to swallow saliva, or drooling, can mean the airway is at risk and needs emergency care."),
     _r("S2", 3, [("complaint", "is", "throat"), ("throat_sx", "has", ["muffled"])],
@@ -312,7 +293,7 @@ RULES = [
     _r("S0", 1, [("complaint", "is", "throat")],
        "Most sore throats come from colds and settle within a week."),
 
-    # ── Headache ───────────────────────────────────────────────────────────
+
     _r("H1", 4, [("complaint", "is", "headache"), ("ha_onset", "is", "thunder")],
        "A sudden, severe 'worst ever' headache needs emergency assessment."),
     _r("H2", 4, [("complaint", "is", "headache"), ("ha_sx", "has", ["neck"])],
@@ -332,7 +313,7 @@ RULES = [
     _r("H0", 1, [("complaint", "is", "headache")],
        "Most headaches are tension-type or migraine-type and ease with rest, fluids and pain relief."),
 
-    # ── Stomach upset ──────────────────────────────────────────────────────
+
     _r("G1", 4, [("complaint", "is", "stomach"), ("gi_sx", "has", ["bloodgi"])],
        "Vomiting blood, or black or bloody stools, can mean serious bleeding and needs emergency care."),
     _r("G2", 4, [("complaint", "is", "stomach"), ("gi_sx", "has", ["hard"])],
@@ -358,13 +339,13 @@ RULES = [
     _r("G0", 1, [("complaint", "is", "stomach")],
        "Most stomach upsets pass within a couple of days with fluids and rest."),
 
-    # ── Young children: drinking and feeding ───────────────────────────────
+
     _r("D1", 3, [("age", "in", YOUNG), ("feeding", "is", "refusing")],
        "A baby or child who is refusing most drinks or feeds, or passing much less urine, is at risk of dehydration and should be assessed today."),
     _r("D2", 2, [("age", "in", BABIES), ("feeding", "is", "less")],
        "A baby who is feeding less than usual should be checked by a doctor soon."),
 
-    # ── Course of the illness ──────────────────────────────────────────────
+
     _r("T1", 3, [("trend", "is", "rapid")],
        "Symptoms that are getting worse quickly, over hours, should be assessed today."),
     _r("T2", 2, [("trend", "is", "worse"), ("age", "in", YOUNG + ["senior"])],
@@ -374,14 +355,11 @@ RULES = [
     _r("M1", 2, [("medicine", "is", "nohelp")],
        "A fever or headache that does not respond to medicine should be checked soon."),
 
-    # ── Not covered ────────────────────────────────────────────────────────
+
     _r("X1", 2, [("complaint", "is", "other")],
        "This checker only covers fever, cough, sore throat, headache and stomach upset. For anything else, talk to a doctor or nurse."),
 ]
 
-# ---------------------------------------------------------------------------
-# Advice shown with the result
-# ---------------------------------------------------------------------------
 
 ADVICE = {
     4: [

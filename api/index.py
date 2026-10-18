@@ -3,11 +3,11 @@ from pathlib import Path
 import json
 import sys
 
-# Add root directory to sys.path to import the expert system from app.py
+
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app import JsonApiMixin, handle_triage  # noqa: E402
+from app import JsonApiMixin, handle_triage
 
 
 class handler(JsonApiMixin, BaseHTTPRequestHandler):
@@ -26,5 +26,5 @@ class handler(JsonApiMixin, BaseHTTPRequestHandler):
         self._send_json(payload)
 
     def do_GET(self):
-        # Health check
+
         self._send_json({"status": "ok", "app": "Symptom Triage Helper"})

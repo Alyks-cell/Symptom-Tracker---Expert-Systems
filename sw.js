@@ -1,6 +1,3 @@
-/* Triage Helper service worker.
-   Network first, so people always get the latest rules; the cache is only a fallback when offline.
-   (The question engine itself needs the server.) */
 const CACHE = "triage-helper-v4";
 const SHELL = ["/", "/static/css/style.css", "/static/js/app.js", "/static/icons/icon.svg", "/static/fonts/inter-latin.woff2", "/manifest.webmanifest"];
 

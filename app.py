@@ -19,7 +19,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import json
 
-from triage import *  # noqa: F401,F403  (re-exported so `import app` keeps working)
+from triage import *
 from triage import handle_triage
 
 ROOT = Path(__file__).parent
@@ -70,7 +70,7 @@ class AppHandler(JsonApiMixin, SimpleHTTPRequestHandler):
         return path in PUBLIC_FILES or (path.startswith("/static/") and ".." not in path)
 
     def do_GET(self):
-        # Only serve the site itself, never source files or the .git folder.
+
         if not self._is_public():
             self.send_error(404)
             return

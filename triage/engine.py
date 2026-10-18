@@ -6,11 +6,6 @@ from .knowledge import (
 )
 
 
-# ---------------------------------------------------------------------------
-# Inference engine
-# ---------------------------------------------------------------------------
-
-
 def label_of(qid, value):
     for option in QUESTION_BY_ID[qid]["options"]:
         if option["value"] == value:
@@ -30,8 +25,6 @@ def match(condition, facts):
         return answer in value
     if op == "has":
         return isinstance(answer, list) and any(v in answer for v in value)
-    if op == "lacks":
-        return isinstance(answer, list) and not any(v in answer for v in value)
     raise ValueError(f"unknown operator {op}")
 
 
@@ -48,9 +41,7 @@ def describe_condition(condition):
         return f"{short} is “{names[0]}”"
     if op == "in":
         return f"{short} is one of: " + "; ".join(f"“{n}”" for n in names)
-    if op == "has":
-        return f"{short} includes: " + "; ".join(f"“{n}”" for n in names) + " (any)"
-    return f"{short} includes none of: " + "; ".join(f"“{n}”" for n in names)
+    return f"{short} includes: " + "; ".join(f"“{n}”" for n in names) + " (any)"
 
 
 def describe_rule(rule):
@@ -133,7 +124,6 @@ def build_result(facts, fired):
         "watch_for": WATCH_FOR.get(complaint, []) if top <= 2 else [],
         "trace": [describe_rule(r) for r in sorted(fired, key=lambda r: (-r["level"], r["id"]))],
         "answers": answers,
-        "questions_asked": len(facts),
         "resolution": (
             "Several rules can fire at once. The highest urgency among them decides the result, "
             "so a danger sign is never outvoted by milder findings."
@@ -146,7 +136,7 @@ def next_step(raw_facts):
     """One turn of the consultation: the next question, or the final result."""
     facts = validate_facts(raw_facts)
     fired = fire_rules(facts)
-    # Stop early on an emergency: asking more questions would only delay help.
+
     if any(r["level"] == 4 for r in fired):
         return {"done": True, "result": build_result(facts, fired)}
     pending = unanswered(facts)
